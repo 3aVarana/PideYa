@@ -50,15 +50,15 @@ An intelligent iOS e-commerce application leveraging edge machine learning and L
 ### Prerequisites
 * macOS Sonoma (14.0+) or higher
 * Xcode 15.3+
-* iOS 17.0+ deployment target
+* iOS 18.0+ deployment target
 * CocoaPods / Bundler (if applicable, else pure SPM)
 
 ### Environment Setup
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-org/app-name.git
-   cd app-name
+   git clone git@github.com:3aVarana/PideYa.git
+   cd PideYa
    ```
 
 2. **Configure Environment Secrets:**
@@ -70,7 +70,7 @@ An intelligent iOS e-commerce application leveraging edge machine learning and L
 
 3. **Install Dependencies & Open:**
    ```bash
-   open AppName.xcodeproj
+   open PideYa.xcodeproj
    ```
 
 ---
