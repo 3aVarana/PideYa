@@ -1,0 +1,61 @@
+#!/bin/bash
+#
+# Blocks the commit when staged Swift files are not swift-format clean.
+#
+# Only the *staged* content is checked (via `git show :file`), so partially
+# staged files behave correctly and nothing in the working tree is rewritten.
+# Bypass with SKIP_SWIFT_FORMAT=1 or `git commit --no-verify`.
+
+set -e
+
+[ -n "${SKIP_SWIFT_FORMAT:-}" ] && exit 0
+
+repo_root=$(git rev-parse --show-toplevel)
+config="$repo_root/.swift-format"
+
+if command -v swift-format >/dev/null 2>&1; then
+    swift_format=$(command -v swift-format)
+elif swift_format=$(xcrun --find swift-format 2>/dev/null); then
+    :
+else
+    echo "swift-format: not found on PATH or via xcrun; skipping check." >&2
+    echo "  Install the Xcode Command Line Tools, or 'brew install swift-format'." >&2
+    exit 0
+fi
+
+config_args=()
+[ -f "$config" ] && config_args=(--configuration "$config")
+
+staged_dir=$(mktemp -d)
+trap 'rm -rf "$staged_dir"' EXIT
+
+unformatted=()
+
+# -z keeps paths with spaces/unicode intact; ACMR skips deletions.
+while IFS= read -r -d '' file; do
+    staged="$staged_dir/staged/$file"
+    formatted="$staged_dir/formatted/$file"
+    mkdir -p "$(dirname "$staged")" "$(dirname "$formatted")"
+
+    git show ":$file" >"$staged"
+
+    if ! "$swift_format" format "${config_args[@]}" "$staged" >"$formatted"; then
+        echo "swift-format: failed to format $file" >&2
+        exit 1
+    fi
+
+    cmp -s "$staged" "$formatted" || unformatted+=("$file")
+done < <(git diff --cached --name-only --diff-filter=ACMR -z -- '*.swift')
+
+[ ${#unformatted[@]} -eq 0 ] && exit 0
+
+echo "swift-format: ${#unformatted[@]} file(s) need formatting:" >&2
+printf '  %s\n' "${unformatted[@]}" >&2
+echo >&2
+echo "Fix with:" >&2
+printf '  ' >&2
+printf '%q ' "$swift_format" format -i "${config_args[@]}" "${unformatted[@]}" >&2
+echo >&2
+echo >&2
+echo "then re-stage them. Bypass with SKIP_SWIFT_FORMAT=1 or --no-verify." >&2
+exit 1
