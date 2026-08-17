@@ -6,3 +6,14 @@
 //
 
 import Foundation
+import Observation
+
+@MainActor
+@Observable
+final class HomeViewModel {
+    private(set) var title: String
+
+    init(title: String = "PideYa") {
+        self.title = title
+    }
+}

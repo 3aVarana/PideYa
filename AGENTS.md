@@ -61,7 +61,7 @@ Agents:
 - Performance issues (e.g., unnecessary re-renders)
 
 **Output:**
-- सुधार suggestions or approval
+- Improvement suggestions or approval
 
 ---
 
@@ -79,7 +79,8 @@ Agents:
   - Loading states
 
 **Output:**
-- XCTest files
+- Swift Testing files (`import Testing`, `@Test`, `#expect(...)`) — see `CLAUDE.md`.
+  Use `XCTest` only where Swift Testing has no equivalent (e.g. `XCUITest` UI automation).
 
 ---
 

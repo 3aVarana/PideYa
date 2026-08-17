@@ -8,11 +8,28 @@
 import SwiftUI
 
 struct HomeView: View {
+    @State private var viewModel: HomeViewModel
+
+    init(viewModel: HomeViewModel) {
+        _viewModel = State(initialValue: viewModel)
+    }
+
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationStack {
+            content
+                .navigationTitle(viewModel.title)
+        }
+    }
+
+    private var content: some View {
+        ContentUnavailableView(
+            "Nothing here yet",
+            systemImage: "storefront",
+            description: Text("Listings will show up here.")
+        )
     }
 }
 
 #Preview {
-    HomeView()
+    HomeView(viewModel: HomeViewModel())
 }
