@@ -1,4 +1,4 @@
-# AppName 🛍️✨
+# PideYa 🛍️✨
 
 [![Swift](https://img.shields.io/badge/Swift-5.10%2B-orange.svg)](https://swift.org)
 [![iOS](https://img.shields.io/badge/iOS-17.0%2B-blue.svg)](https://developer.apple.com/ios/)
