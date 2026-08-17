@@ -1,5 +1,5 @@
 //
-//  HomeView.swift
+//  HomeTabView.swift
 //  PideYa
 //
 //  Created by Victor Arana on 16/8/26.
@@ -7,10 +7,10 @@
 
 import SwiftUI
 
-struct HomeView: View {
-    @State private var viewModel: HomeViewModel
+struct HomeTabView: View {
+    @State private var viewModel: HomeTabViewModel
 
-    init(viewModel: HomeViewModel) {
+    init(viewModel: HomeTabViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
 
@@ -31,5 +31,5 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView(viewModel: HomeViewModel())
+    HomeTabView(viewModel: HomeTabViewModel())
 }

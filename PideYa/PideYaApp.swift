@@ -11,7 +11,7 @@ import SwiftUI
 struct PideYaApp: App {
     var body: some Scene {
         WindowGroup {
-            HomeView(viewModel: HomeViewModel())
+            HomeTabView(viewModel: HomeTabViewModel())
         }
     }
 }

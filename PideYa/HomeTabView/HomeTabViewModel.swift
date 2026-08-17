@@ -1,5 +1,5 @@
 //
-//  HomeViewModel.swift
+//  HomeTabViewModel.swift
 //  PideYa
 //
 //  Created by Victor Arana on 16/8/26.
@@ -10,7 +10,7 @@ import Observation
 
 @MainActor
 @Observable
-final class HomeViewModel {
+final class HomeTabViewModel {
     private(set) var title: String
 
     init(title: String = "PideYa") {
