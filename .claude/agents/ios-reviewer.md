@@ -1,4 +1,3 @@
-
 ---
 name: ios-reviewer
 description: Reviews Swift/SwiftUI changes for correctness, concurrency safety, memory, and API design. Read-only. Use after ios-dev finishes implementation.

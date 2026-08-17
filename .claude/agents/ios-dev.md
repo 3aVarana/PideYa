@@ -1,4 +1,3 @@
-
 ---
 name: ios-dev
 description: Implements iOS features from a plan file. Writes Swift/SwiftUI code and makes it compile. Use after ios-planner, and to fix issues raised by ios-reviewer or ios-qa.
