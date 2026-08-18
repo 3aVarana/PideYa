@@ -61,7 +61,7 @@ struct HomeTabBar: View {
                 Image(systemName: tab.systemImage)
                     .font(.system(size: Theme.IconSize.tab))
                 Text(tab.title)
-                    .font(Theme.Typeface.tabLabel)
+                    .themeFont(Theme.Typeface.tabLabel)
             }
             .foregroundStyle(isSelected ? Theme.Palette.accent : Theme.Palette.ink)
             .frame(maxWidth: .infinity)

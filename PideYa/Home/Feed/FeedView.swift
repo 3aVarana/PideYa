@@ -13,9 +13,22 @@ import SwiftUI
 /// typed-enum `navigationDestination` pattern can be added later without restructuring.
 struct FeedView: View {
     @State private var viewModel: FeedViewModel
+    /// The tab bar's real, measured height, supplied by `HomeTabView`.
+    ///
+    /// `HomeTabView` already applies `.safeAreaInset(edge: .bottom)` for the tab bar one level
+    /// above this view's `NavigationStack`, but that inset does not reach this screen's
+    /// `ScrollView`: `NavigationStack` is backed by a `UINavigationController`/`UIHostingView`
+    /// boundary, and SwiftUI's ancestor safe-area reservation does not cross that boundary the
+    /// way it does for plain nested SwiftUI containers (this is why the pinned *top* header,
+    /// whose inset is applied directly to this same `ScrollView` below, works correctly while
+    /// the bottom one silently did not). The fix is to apply a second, independent
+    /// `.safeAreaInset(edge: .bottom)` directly on this `ScrollView`, using the tab bar's real
+    /// measured height rather than a hardcoded constant.
+    let bottomInset: CGFloat
 
-    init(viewModel: FeedViewModel) {
+    init(viewModel: FeedViewModel, bottomInset: CGFloat = 0) {
         _viewModel = State(initialValue: viewModel)
+        self.bottomInset = bottomInset
     }
 
     var body: some View {
@@ -31,6 +44,9 @@ struct FeedView: View {
             .background(Theme.Palette.background)
             .safeAreaInset(edge: .top, spacing: 0) {
                 header
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                Theme.Palette.transparent.frame(height: bottomInset)
             }
             .toolbar(.hidden, for: .navigationBar)
         }
@@ -67,7 +83,7 @@ struct FeedView: View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
             SectionHeaderView(title: "RECOMENDADOS PARA TI")
             Text("Según tus últimos pedidos")
-                .font(Theme.Typeface.subtitle)
+                .themeFont(Theme.Typeface.subtitle)
                 .foregroundStyle(Theme.Palette.secondary)
             recommendedList
         }

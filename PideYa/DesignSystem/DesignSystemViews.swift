@@ -6,6 +6,57 @@
 //
 
 import SwiftUI
+import UIKit
+
+extension View {
+    /// Applies a `Theme.Typeface` token with real Dynamic Type scaling.
+    ///
+    /// `Theme.Typeface` tokens store a fixed *base* point size and weight; a bare
+    /// `.font(.system(size:weight:))` never responds to the user's Content Size Category. This
+    /// modifier scales the base size with `UIFontMetrics`, keyed to the live `dynamicTypeSize`
+    /// environment value, so text set this way genuinely grows and shrinks with Dynamic Type.
+    func themeFont(_ style: Theme.Typeface.Style) -> some View {
+        modifier(ThemeFontModifier(style: style))
+    }
+}
+
+private struct ThemeFontModifier: ViewModifier {
+    let style: Theme.Typeface.Style
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    func body(content: Content) -> some View {
+        content.font(scaledFont)
+    }
+
+    private var scaledFont: Font {
+        let metrics = UIFontMetrics(forTextStyle: style.relativeTo)
+        let traitCollection = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(dynamicTypeSize))
+        let scaledSize = metrics.scaledValue(for: style.size, compatibleWith: traitCollection)
+        return Font.system(size: scaledSize, weight: style.weight)
+    }
+}
+
+extension UIContentSizeCategory {
+    /// `DynamicTypeSize` (SwiftUI) has no built-in bridge to `UIContentSizeCategory` (UIKit),
+    /// so `UIFontMetrics` is mapped explicitly to the same category the environment reports.
+    fileprivate init(_ dynamicTypeSize: DynamicTypeSize) {
+        switch dynamicTypeSize {
+        case .xSmall: self = .extraSmall
+        case .small: self = .small
+        case .medium: self = .medium
+        case .large: self = .large
+        case .xLarge: self = .extraLarge
+        case .xxLarge: self = .extraExtraLarge
+        case .xxxLarge: self = .extraExtraExtraLarge
+        case .accessibility1: self = .accessibilityMedium
+        case .accessibility2: self = .accessibilityLarge
+        case .accessibility3: self = .accessibilityExtraLarge
+        case .accessibility4: self = .accessibilityExtraExtraLarge
+        case .accessibility5: self = .accessibilityExtraExtraExtraLarge
+        @unknown default: self = .large
+        }
+    }
+}
 
 /// Diagonal-hatch stand-in for a missing image asset. Sized entirely by the caller.
 struct HatchedPlaceholder: View {
@@ -38,7 +89,7 @@ struct ChipView: View {
 
     var body: some View {
         Text(text)
-            .font(Theme.Typeface.chip)
+            .themeFont(Theme.Typeface.chip)
             .foregroundStyle(textColor)
             .padding(.horizontal, Theme.Spacing.sm)
             .padding(.vertical, Theme.Spacing.xs)
@@ -93,13 +144,13 @@ struct SectionHeaderView: View {
     var body: some View {
         HStack {
             Text(title)
-                .font(Theme.Typeface.sectionTitle)
+                .themeFont(Theme.Typeface.sectionTitle)
                 .kerning(Theme.Kerning.sectionTitle)
                 .foregroundStyle(Theme.Palette.ink)
             Spacer()
             if let action {
                 Button(action.title, action: action.perform)
-                    .font(Theme.Typeface.action)
+                    .themeFont(Theme.Typeface.action)
                     .foregroundStyle(Theme.Palette.accent)
             }
         }
@@ -134,14 +185,21 @@ struct FlowLayout: Layout {
     }
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let maxWidth = proposal.width ?? .infinity
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let largestItemWidth = sizes.map(\.width).max() ?? 0
+        let proposedWidth = proposal.width ?? .infinity
+        // A single child can never be split across a line, so the wrap threshold must never be
+        // narrower than the widest child. Without this floor, a `.zero` proposal makes every
+        // child wrap onto its own line while still (incorrectly) reporting a width of 0, telling
+        // the parent this layout can shrink to nothing when it cannot.
+        let wrapWidth = max(proposedWidth, largestItemWidth)
+
         var origin = CGPoint.zero
         var lineHeight: CGFloat = 0
         var totalWidth: CGFloat = 0
 
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if origin.x + size.width > maxWidth, origin.x > 0 {
+        for size in sizes {
+            if origin.x + size.width > wrapWidth, origin.x > 0 {
                 origin.x = 0
                 origin.y += lineHeight + spacing
                 lineHeight = 0
@@ -151,7 +209,13 @@ struct FlowLayout: Layout {
             totalWidth = max(totalWidth, origin.x - spacing)
         }
 
-        return CGSize(width: maxWidth.isFinite ? maxWidth : totalWidth, height: origin.y + lineHeight)
+        let height = origin.y + lineHeight
+        guard proposedWidth.isFinite else {
+            return CGSize(width: totalWidth, height: height)
+        }
+        // Never claim more than the proposal actually offers (the old greedy behaviour), but
+        // never claim less than the widest single child needs (the old `.zero`-reports-0 bug).
+        return CGSize(width: max(largestItemWidth, min(proposedWidth, totalWidth)), height: height)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
@@ -165,7 +229,11 @@ struct FlowLayout: Layout {
                 origin.y += lineHeight + spacing
                 lineHeight = 0
             }
-            subview.place(at: origin, proposal: ProposedViewSize(size))
+            // Constrain the placement proposal to the available bounds so a child wider than
+            // its line's remaining space is asked to fit inside `bounds` rather than being
+            // placed at its full natural size and overflowing past the container's edge.
+            let placementWidth = min(size.width, bounds.width)
+            subview.place(at: origin, proposal: ProposedViewSize(width: placementWidth, height: size.height))
             origin.x += size.width + spacing
             lineHeight = max(lineHeight, size.height)
         }

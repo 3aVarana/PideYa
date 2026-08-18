@@ -140,4 +140,69 @@ final class HomeFeedUITests: XCTestCase {
 
         XCTAssertTrue(secondCard.isHittable, "Forno Bianco did not become fully visible after swiping.")
     }
+
+    /// Regression test for the fix-cycle-2 defect where the last recommendation row's chip sat
+    /// entirely behind the opaque tab bar at maximum scroll. `testChipCountsPerRecommendationRow`
+    /// above only asserts `.exists`/`.count`, which cannot detect an element that exists in the
+    /// accessibility tree while being visually obscured and unhittable — this is exactly why that
+    /// defect slipped through. Scrolls well past the point the row first exists to reach true
+    /// maximum scroll, matching how it was originally reproduced, and measures frames directly.
+    @MainActor
+    func testLastRecommendationRowIsReachableAboveTabBar() {
+        let app = XCUIApplication()
+        app.launch()
+
+        let casaLolaChips = app.otherElements["chips.Casa Lola"]
+        scrollUntilVisible(casaLolaChips, in: app, maxSwipes: 10)
+        XCTAssertTrue(casaLolaChips.waitForExistence(timeout: 5))
+
+        // Keep scrolling past first existence to reach the true scroll maximum, where the
+        // defect manifested (the row existed in the tree but sat behind the tab bar).
+        for _ in 0..<6 {
+            app.swipeUp()
+        }
+
+        XCTAssertTrue(casaLolaChips.isHittable, "Casa Lola's chip row is not hittable at maximum scroll.")
+
+        let tabBar = app.buttons["tabbar.inicio"]
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 5))
+        XCTAssertFalse(
+            casaLolaChips.frame.intersects(tabBar.frame),
+            "Casa Lola's chip row frame \(casaLolaChips.frame) intersects the tab bar frame \(tabBar.frame)."
+        )
+        XCTAssertLessThanOrEqual(
+            casaLolaChips.frame.maxY,
+            tabBar.frame.minY,
+            "Casa Lola's chip row extends into the tab bar's vertical span."
+        )
+    }
+
+    /// Regression test for the fix-cycle-2 defect where `Theme.Typeface` used fixed-point-size
+    /// fonts that never responded to the user's Content Size Category (measured height ratio
+    /// between normal and `.accessibility1` launches was exactly 1.0). Launches the app twice —
+    /// once at the default content size, once with the same `-UIPreferredContentSizeCategoryName`
+    /// launch argument QA used to reproduce the defect — and asserts a real height increase
+    /// rather than trusting a visual inspection, which looked deceptively similar at a glance.
+    @MainActor
+    func testSectionHeaderScalesWithDynamicType() {
+        let defaultApp = XCUIApplication()
+        defaultApp.launch()
+        let defaultText = defaultApp.staticTexts["OFERTAS DE HOY"]
+        XCTAssertTrue(defaultText.waitForExistence(timeout: 5))
+        let defaultHeight = defaultText.frame.height
+        defaultApp.terminate()
+
+        let accessibilityApp = XCUIApplication()
+        accessibilityApp.launchArguments += [
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityL",
+        ]
+        accessibilityApp.launch()
+        let accessibilityText = accessibilityApp.staticTexts["OFERTAS DE HOY"]
+        XCTAssertTrue(accessibilityText.waitForExistence(timeout: 5))
+        let accessibilityHeight = accessibilityText.frame.height
+        accessibilityApp.terminate()
+
+        let message = "Text did not grow at .accessibility1 (\(defaultHeight) -> \(accessibilityHeight))."
+        XCTAssertGreaterThan(accessibilityHeight, defaultHeight, message)
+    }
 }

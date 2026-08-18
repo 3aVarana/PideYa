@@ -25,12 +25,15 @@ struct FeedHeaderView: View {
         .overlay(alignment: .bottom) {
             HardRule()
         }
+        // The 52pt avatar box and the brand word's single-line layout cannot grow indefinitely;
+        // cap growth the same way `HomeTabBar` already does.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
     }
 
     private var brandRow: some View {
         HStack {
             Text("PIDEYA")
-                .font(Theme.Typeface.brand)
+                .themeFont(Theme.Typeface.brand)
                 .kerning(Theme.Kerning.brand)
                 .foregroundStyle(Theme.Palette.ink)
             Spacer()
@@ -40,7 +43,7 @@ struct FeedHeaderView: View {
 
     private var avatarBox: some View {
         Text(profile.initials)
-            .font(Theme.Typeface.rowTitle)
+            .themeFont(Theme.Typeface.rowTitle)
             .foregroundStyle(Theme.Palette.ink)
             .frame(width: Theme.Size.avatarBox, height: Theme.Size.avatarBox)
             .overlay(Rectangle().strokeBorder(Theme.Palette.ink, lineWidth: Theme.Stroke.hairline))
@@ -51,7 +54,7 @@ struct FeedHeaderView: View {
             Image(systemName: "mappin")
                 .foregroundStyle(Theme.Palette.accent)
             Text(profile.addressLine)
-                .font(Theme.Typeface.subtitle.bold())
+                .themeFont(Theme.Typeface.subtitleBold)
                 .foregroundStyle(Theme.Palette.ink)
             Image(systemName: "chevron.down")
                 .foregroundStyle(Theme.Palette.ink)
@@ -92,7 +95,7 @@ struct OfferCardView: View {
 
     private var bannerBand: some View {
         Text(offer.bannerText)
-            .font(Theme.Typeface.band)
+            .themeFont(Theme.Typeface.band)
             .foregroundStyle(Theme.Palette.onAccent)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, Theme.Spacing.sm)
@@ -103,10 +106,10 @@ struct OfferCardView: View {
     private var details: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
             Text(offer.restaurantName)
-                .font(Theme.Typeface.cardTitle)
+                .themeFont(Theme.Typeface.cardTitle)
                 .foregroundStyle(Theme.Palette.ink)
             Text(offer.subtitleText)
-                .font(Theme.Typeface.subtitle)
+                .themeFont(Theme.Typeface.subtitle)
                 .foregroundStyle(Theme.Palette.secondary)
         }
         .padding(Theme.Spacing.md)
@@ -125,21 +128,25 @@ struct RestaurantRowView: View {
             details
             Spacer()
             Text(restaurant.deliveryFeeText)
-                .font(Theme.Typeface.subtitle.bold())
+                .themeFont(Theme.Typeface.subtitleBold)
                 .foregroundStyle(Theme.Palette.ink)
                 .lineLimit(1)
                 .layoutPriority(1)
         }
+        // The 72pt thumbnail is fixed size; cap growth the same way `HomeTabBar` already does
+        // so the row's chips (now wrapped by `FlowLayout`) and fee text stay legible rather than
+        // pushing the row to an unbounded height.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
     }
 
     private var details: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
             Text(restaurant.name)
-                .font(Theme.Typeface.rowTitle)
+                .themeFont(Theme.Typeface.rowTitle)
                 .foregroundStyle(Theme.Palette.ink)
                 .lineLimit(1)
             Text(restaurant.subtitleText)
-                .font(Theme.Typeface.subtitle)
+                .themeFont(Theme.Typeface.subtitle)
                 .foregroundStyle(Theme.Palette.secondary)
             chips
         }

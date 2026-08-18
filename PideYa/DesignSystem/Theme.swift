@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 /// Design tokens shared by every tab in the Home shell.
 ///
@@ -22,6 +23,9 @@ nonisolated enum Theme {
         static let searchFill = Color(red: 232 / 255, green: 232 / 255, blue: 230 / 255)
         /// Foreground colour for text/icons drawn directly on `accent` fills (e.g. the offer banner band).
         static let onAccent = Color(red: 255 / 255, green: 255 / 255, blue: 255 / 255)
+        /// Invisible spacer colour, used where a view needs a `Color` only to occupy layout
+        /// space (e.g. the tab-bar-height bottom inset in `FeedView`), never as a visible fill.
+        static let transparent = Color.clear
     }
 
     enum Spacing {
@@ -41,22 +45,42 @@ nonisolated enum Theme {
         static let avatarBox: CGFloat = 52
         static let searchField: CGFloat = 56
         static let rowThumbnail: CGFloat = 72
+        /// Estimate of `HomeTabBar`'s rendered height, used only as the initial value of
+        /// `HomeTabView`'s `@State` before the bar's real height is measured with
+        /// `onGeometryChange`. The real, measured height is always the source of truth for the
+        /// bottom content inset that keeps the last recommendation row above the bar; this token
+        /// only avoids a flash of unpadded content on the very first layout pass.
+        static let tabBarFallbackHeight: CGFloat = 56
     }
 
     enum IconSize {
         static let tab: CGFloat = 22
     }
 
+    /// Font tokens. **Not** `Font` values directly: a bare `Font.system(size:weight:)` is a
+    /// fixed-point-size font that never responds to the user's Content Size Category, so it
+    /// does not honour Dynamic Type despite superficially looking like it might. Each token
+    /// below pairs the design's base point size (as specified at the default/"Large" content
+    /// size category) with the `UIFontMetrics` text style used to scale it. Apply a token with
+    /// `View.themeFont(_:)` (see `DesignSystemViews.swift`), not `.font(_:)` directly, so the
+    /// scaling actually happens.
     enum Typeface {
-        static let brand = Font.system(size: 40, weight: .heavy)
-        static let sectionTitle = Font.system(size: 15, weight: .bold)
-        static let cardTitle = Font.system(size: 22, weight: .bold)
-        static let rowTitle = Font.system(size: 20, weight: .bold)
-        static let subtitle = Font.system(size: 15, weight: .regular)
-        static let chip = Font.system(size: 13, weight: .bold)
-        static let band = Font.system(size: 13, weight: .heavy)
-        static let tabLabel = Font.system(size: 11, weight: .bold)
-        static let action = Font.system(size: 15, weight: .medium)
+        struct Style {
+            let size: CGFloat
+            let weight: Font.Weight
+            let relativeTo: UIFont.TextStyle
+        }
+
+        static let brand = Style(size: 40, weight: .heavy, relativeTo: .largeTitle)
+        static let sectionTitle = Style(size: 15, weight: .bold, relativeTo: .subheadline)
+        static let cardTitle = Style(size: 22, weight: .bold, relativeTo: .title2)
+        static let rowTitle = Style(size: 20, weight: .bold, relativeTo: .title3)
+        static let subtitle = Style(size: 15, weight: .regular, relativeTo: .subheadline)
+        static let subtitleBold = Style(size: 15, weight: .bold, relativeTo: .subheadline)
+        static let chip = Style(size: 13, weight: .bold, relativeTo: .caption1)
+        static let band = Style(size: 13, weight: .heavy, relativeTo: .caption1)
+        static let tabLabel = Style(size: 11, weight: .bold, relativeTo: .caption2)
+        static let action = Style(size: 15, weight: .medium, relativeTo: .subheadline)
     }
 
     enum Kerning {
