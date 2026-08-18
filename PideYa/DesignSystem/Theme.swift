@@ -26,6 +26,17 @@ nonisolated enum Theme {
         /// Invisible spacer colour, used where a view needs a `Color` only to occupy layout
         /// space (e.g. the tab-bar-height bottom inset in `FeedView`), never as a visible fill.
         static let transparent = Color.clear
+        /// A light grey hairline. Used by (a) the `REPETIR` button's border and (b) the
+        /// un-reached fourth segment of the order progress tracker. This is deliberately **not**
+        /// `placeholder`: `placeholder` means "fill behind a missing image", while this token
+        /// means "a control border or unreached-state fill", and the two roles must be free to
+        /// diverge even though the mockup measured the same `#C9C9C9` in both new places.
+        static let outline = Color(red: 201 / 255, green: 201 / 255, blue: 201 / 255)
+        /// Pure white fill. Used by the square "quick actions" bolt button on the active order
+        /// card, which reads lighter than the card body. Deliberately **not** `onAccent`, which
+        /// happens to share the same RGB but means "foreground on an accent fill" — collapsing
+        /// the two would couple unrelated semantic roles.
+        static let surface = Color(red: 255 / 255, green: 255 / 255, blue: 255 / 255)
     }
 
     enum Spacing {
@@ -51,6 +62,14 @@ nonisolated enum Theme {
         /// bottom content inset that keeps the last recommendation row above the bar; this token
         /// only avoids a flash of unpadded content on the very first layout pass.
         static let tabBarFallbackHeight: CGFloat = 56
+        /// The square hatched thumbnail used by both the active order card and past-order rows.
+        static let orderThumbnail: CGFloat = 64
+        /// Minimum height of the `Ver seguimiento` button and the exact side length of the
+        /// square "quick actions" button. Applied as a `minHeight` on the primary button so it
+        /// can grow with Dynamic Type, and as a fixed `width`/`height` on the square one.
+        static let actionButton: CGFloat = 48
+        /// Thickness of a single order-progress-tracker segment.
+        static let progressSegment: CGFloat = 5
     }
 
     enum IconSize {

@@ -34,6 +34,7 @@ struct HomeTabView: View {
     private var selectedScreen: some View {
         switch viewModel.selectedTab {
         case .inicio: FeedView(viewModel: viewModel.feed, bottomInset: tabBarHeight)
+        case .pedidos: OrdersView(viewModel: viewModel.orders, bottomInset: tabBarHeight)
         case let other: PlaceholderTabView(tab: other)
         }
     }

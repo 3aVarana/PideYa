@@ -13,8 +13,10 @@ import Observation
 final class HomeTabViewModel {
     var selectedTab: HomeTab = .inicio
     let feed: FeedViewModel
+    let orders: OrdersViewModel
 
-    init(feed: FeedViewModel = FeedViewModel()) {
+    init(feed: FeedViewModel = FeedViewModel(), orders: OrdersViewModel = OrdersViewModel()) {
         self.feed = feed
+        self.orders = orders
     }
 }

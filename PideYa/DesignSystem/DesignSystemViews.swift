@@ -240,6 +240,72 @@ struct FlowLayout: Layout {
     }
 }
 
+/// Clamps a raw rating into a valid filled-star count, so an out-of-range `score` (negative, or
+/// above `outOf`) can never crash or force-unwrap; it simply saturates at the nearest valid
+/// value. A free function rather than a `private` view property so it is directly testable from
+/// `PideYaTests`.
+nonisolated func filledStars(score: Double, outOf: Int) -> Int {
+    min(outOf, max(0, Int(score.rounded())))
+}
+
+/// A row of accent-red stars, filled up to `score` and hollow for the remainder.
+///
+/// User-facing copy is not baked in: the caller supplies `accessibilityLabel`, keeping this
+/// component free of any one app's language (every other component in this file follows the
+/// same rule, e.g. `ChipView(text:)`).
+struct StarRatingView: View {
+    let score: Double
+    let outOf: Int
+    let accessibilityLabel: (Int, Int) -> String
+
+    init(score: Double, outOf: Int = 5, accessibilityLabel: @escaping (Int, Int) -> String) {
+        self.score = score
+        self.outOf = outOf
+        self.accessibilityLabel = accessibilityLabel
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<outOf, id: \.self) { index in
+                Image(systemName: index < filledCount ? "star.fill" : "star")
+                    .themeFont(Theme.Typeface.chip)
+                    .foregroundStyle(Theme.Palette.accent)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel(filledCount, outOf))
+    }
+
+    private var filledCount: Int {
+        filledStars(score: score, outOf: outOf)
+    }
+}
+
+/// A hairline-bordered text button with a transparent fill. Distinct from `ChipView(style:
+/// .outlined)`, which is ink-bordered and is not a `Button` — this component is for controls
+/// whose border colour must diverge from ink (e.g. the `REPETIR` button's light-grey border).
+struct OutlinedActionButton: View {
+    let title: String
+    let action: () -> Void
+
+    init(title: String, action: @escaping () -> Void) {
+        self.title = title
+        self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .themeFont(Theme.Typeface.chip)
+                .foregroundStyle(Theme.Palette.ink)
+                .padding(.horizontal, Theme.Spacing.sm)
+                .padding(.vertical, Theme.Spacing.xs)
+                .overlay(Rectangle().strokeBorder(Theme.Palette.outline, lineWidth: Theme.Stroke.hairline))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 #Preview("HatchedPlaceholder") {
     HatchedPlaceholder()
         .frame(width: 120, height: 120)
@@ -270,4 +336,17 @@ struct FlowLayout: Layout {
     }
     .frame(width: 160)
     .padding()
+}
+
+#Preview("StarRatingView") {
+    VStack(spacing: Theme.Spacing.sm) {
+        StarRatingView(score: 5.0) { filled, outOf in "\(filled) de \(outOf) estrellas" }
+        StarRatingView(score: 4.0) { filled, outOf in "\(filled) de \(outOf) estrellas" }
+    }
+    .padding()
+}
+
+#Preview("OutlinedActionButton") {
+    OutlinedActionButton(title: "REPETIR", action: {})
+        .padding()
 }
