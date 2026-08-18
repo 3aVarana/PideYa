@@ -12,7 +12,12 @@ import SwiftUI
 /// Wrapped in a `NavigationStack` with a hidden bar even though nothing pushes yet, so the
 /// typed-enum `navigationDestination` pattern can be added later without restructuring.
 struct FeedView: View {
-    @State private var viewModel: FeedViewModel
+    /// Held as a plain `let`, not `@State`, because this view does not own it: `HomeTabViewModel`
+    /// creates and retains the `FeedViewModel` so feed state survives tab switches. `@State` would
+    /// claim ownership and apply its "only the first instance passed in wins" lifetime rule, which
+    /// would silently ignore a later swap of the injected view model. Observation still drives
+    /// updates through the `@Observable` reference, so nothing is lost by dropping the wrapper.
+    let viewModel: FeedViewModel
     /// The tab bar's real, measured height, supplied by `HomeTabView`.
     ///
     /// `HomeTabView` already applies `.safeAreaInset(edge: .bottom)` for the tab bar one level
@@ -27,7 +32,7 @@ struct FeedView: View {
     let bottomInset: CGFloat
 
     init(viewModel: FeedViewModel, bottomInset: CGFloat = 0) {
-        _viewModel = State(initialValue: viewModel)
+        self.viewModel = viewModel
         self.bottomInset = bottomInset
     }
 
@@ -53,7 +58,9 @@ struct FeedView: View {
     }
 
     private var header: some View {
-        FeedHeaderView(profile: viewModel.profile, searchText: $viewModel.searchText)
+        // `viewModel` is a plain `let`, so there is no `$` projection to bind through.
+        // `Bindable` produces the write-back binding the search field needs.
+        FeedHeaderView(profile: viewModel.profile, searchText: Bindable(viewModel).searchText)
     }
 
     private var offersSection: some View {

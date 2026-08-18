@@ -36,7 +36,14 @@ Don't invoke these until they're set up; they are aspirational, not part of the 
 
 ## Code Style & Guardrails
 - **SwiftUI Views**: Keep view `body` under 40 lines. Decompose into modular, private subviews or computed properties.
-- **View entry point**: `PideYaApp` → `HomeView(viewModel:)`. ViewModels are injected via `init` and held with `@State`.
+- **View entry point**: `PideYaApp` → `HomeTabView(viewModel:)`. ViewModels are always injected via `init`.
+- **ViewModel ownership**: the view that *owns* a ViewModel holds it with `@State` (e.g. `HomeTabView`,
+  which creates and retains `HomeTabViewModel`). A view handed a ViewModel owned by a parent holds it
+  as a plain `let` (e.g. `FeedView`, whose `FeedViewModel` is retained by `HomeTabViewModel` so feed
+  state survives tab switches). Observation drives updates either way; `@State` additionally claims
+  ownership and applies its "only the first instance passed in wins" lifetime rule, so using it on a
+  borrowed ViewModel would silently ignore a later swap. A plain `let` has no `$` projection — wrap it
+  in `Bindable(viewModel).someProperty` where a two-way binding is needed.
 - **Strictly Prohibited**:
   - `AnyView` (breaks view diffing and lifecycle optimization).
   - Unhandled `try?` in networking/business logic — always map or handle errors explicitly.
