@@ -60,3 +60,11 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Claude Code
+#
+# Agent definitions (.claude/agents) and slash commands (.claude/commands) are
+# checked in deliberately, as is .claude/workflow — the per-feature plan, review
+# and QA record. Agent memory is per-machine scratch written by subagents between
+# runs; it is not a shared project artifact.
+.claude/agent-memory/
