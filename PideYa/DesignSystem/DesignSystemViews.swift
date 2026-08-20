@@ -81,6 +81,10 @@ struct HatchedPlaceholder: View {
 struct ChipView: View {
     enum Style {
         case outlined
+        /// A hairline border in `Theme.Palette.secondary` rather than ink, with no fill. Added
+        /// for the Cuenta header's second badge (DESIGN.md §3.3), which measures a grey border,
+        /// not the ink one `.outlined` draws.
+        case outlinedSubtle
         case promo
     }
 
@@ -99,14 +103,14 @@ struct ChipView: View {
 
     private var textColor: Color {
         switch style {
-        case .outlined: Theme.Palette.ink
+        case .outlined, .outlinedSubtle: Theme.Palette.ink
         case .promo: Theme.Palette.accent
         }
     }
 
     private var backgroundColor: Color {
         switch style {
-        case .outlined: .clear
+        case .outlined, .outlinedSubtle: .clear
         case .promo: Theme.Palette.promoFill
         }
     }
@@ -115,8 +119,24 @@ struct ChipView: View {
     private var border: some View {
         switch style {
         case .outlined: Rectangle().strokeBorder(Theme.Palette.ink, lineWidth: Theme.Stroke.hairline)
+        case .outlinedSubtle: Rectangle().strokeBorder(Theme.Palette.secondary, lineWidth: Theme.Stroke.hairline)
         case .promo: EmptyView()
         }
+    }
+}
+
+/// A grey, uppercase, letter-spaced eyebrow label (e.g. `CUENTA`, `MONEDERO`). Distinct from
+/// `SectionHeaderView`, which hardcodes `Theme.Palette.ink` and 15 pt `sectionTitle` for a role
+/// this label does not have. Copy-free — callers pass literal uppercase strings; the uppercase
+/// text case modifier is deliberately not used here.
+struct EyebrowLabel: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .themeFont(Theme.Typeface.captionBold)
+            .kerning(Theme.Kerning.sectionTitle)
+            .foregroundStyle(Theme.Palette.secondary)
     }
 }
 
@@ -314,9 +334,15 @@ struct OutlinedActionButton: View {
 #Preview("ChipView") {
     HStack {
         ChipView(text: "25-35 min", style: .outlined)
+        ChipView(text: "TEL. PENDIENTE", style: .outlinedSubtle)
         ChipView(text: "-40%", style: .promo)
     }
     .padding()
+}
+
+#Preview("EyebrowLabel") {
+    EyebrowLabel(text: "CUENTA")
+        .padding()
 }
 
 #Preview("SectionHeaderView") {

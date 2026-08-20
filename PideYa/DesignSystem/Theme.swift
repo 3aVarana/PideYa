@@ -70,6 +70,11 @@ nonisolated enum Theme {
         static let actionButton: CGFloat = 48
         /// Thickness of a single order-progress-tracker segment.
         static let progressSegment: CGFloat = 5
+        /// The Cuenta grid's measured row height (DESIGN.md §4.1), applied as a `minHeight`,
+        /// never a fixed `.frame(height:)` — §4.2 is explicit that 120 pt is measured at the
+        /// default content size, not a hard constraint, and a fixed frame clips at large Dynamic
+        /// Type.
+        static let accountTile: CGFloat = 120
     }
 
     enum IconSize {
@@ -100,6 +105,18 @@ nonisolated enum Theme {
         static let band = Style(size: 13, weight: .heavy, relativeTo: .caption1)
         static let tabLabel = Style(size: 11, weight: .bold, relativeTo: .caption2)
         static let action = Style(size: 15, weight: .medium, relativeTo: .subheadline)
+        /// The Cuenta header's two-line given/family name (DESIGN.md §3.2). Measured cap height
+        /// 24.3 pt ÷ 0.714 = 34 pt; `brand` (40 pt) is 6 pt out, three times the mockup's own
+        /// ±2 pt error bar on derived font sizes, and visibly too large on a two-line name.
+        static let displayName = Style(size: 34, weight: .heavy, relativeTo: .largeTitle)
+        /// Cuenta tile subtitles and the wallet footer (DESIGN.md §4.4, §5), measured ≈11 pt
+        /// regular. Nearest existing tokens (`chip` 13 bold, `subtitle` 15) are the wrong weight
+        /// and 4 pt out respectively.
+        static let caption = Style(size: 11, weight: .regular, relativeTo: .caption2)
+        /// The Cuenta eyebrows (`CUENTA`, `MONEDERO`) and `needsAttention` tile subtitles
+        /// (DESIGN.md §3.1, §4.4), measured ≈11 pt bold. Deliberately distinct from `tabLabel`
+        /// (also 11/bold), which is semantically a tab label.
+        static let captionBold = Style(size: 11, weight: .bold, relativeTo: .caption2)
     }
 
     enum Kerning {
